@@ -615,28 +615,49 @@ main{padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))}
 
 /* botão 🚫 do admin */
 .adm-acoes{display:flex;gap:5px;justify-content:flex-end}
+.btn-ord{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:11px;line-height:1;padding:4px 1px;border-radius:6px;-webkit-tap-highlight-color:transparent;transition:color .15s,transform .1s}
+.btn-ord:hover{color:var(--cor,#e879f9)}
+.btn-ord:active{transform:scale(.85)}
+.grip{border:none;background:rgba(255,255,255,.07);color:var(--muted);cursor:grab;font-size:13px;line-height:1;padding:0;width:100%;height:36px;border-radius:9px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;transition:color .15s,background .15s}
+.grip:hover{color:var(--cor,#e879f9);background:rgba(232,121,249,.12)}
+.grip:active{cursor:grabbing}
+.adm-linha.drag-sel{position:relative;z-index:6;background:rgba(232,121,249,.14);outline:1.5px solid rgba(232,121,249,.55);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.5);opacity:.96}
+body.dragging-menu{user-select:none;-webkit-user-select:none}
+.m-inst{position:fixed;inset:0;z-index:100000;display:flex;align-items:flex-end;justify-content:center;background:rgba(8,4,16,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:14px}
+.m-inst-box{position:relative;background:linear-gradient(160deg,#1c1128,#241536);border:1px solid rgba(232,121,249,.35);border-radius:18px;max-width:380px;width:100%;max-height:78vh;overflow-y:auto;padding:20px 18px;box-shadow:0 24px 60px rgba(0,0,0,.6);-webkit-overflow-scrolling:touch}
+.m-inst-box h3{font-size:16px;margin:0 0 8px;color:#fff}
+.m-inst-fechar{position:absolute;top:10px;right:10px;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:14px;width:30px;height:30px;border-radius:50%;cursor:pointer}
+.m-inst-t{font-size:12.5px;font-weight:800;color:#e879f9;text-transform:uppercase;letter-spacing:.04em;margin:2px 0 4px}
+.m-inst-box ol{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:9px;counter-reset:p}
+.m-inst-box ol li{font-size:13.5px;line-height:1.5;color:#d9cfe8;counter-increment:p;display:flex;gap:8px}
+.m-inst-box ol li > span{flex:1;min-width:0}
+.m-inst-box ol li::before{content:counter(p);flex:0 0 22px;height:22px;border-radius:50%;background:rgba(232,121,249,.18);color:#e879f9;font-weight:800;font-size:11.5px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.m-inst-box ol li b{color:#fff}
+@media (min-width:641px){.m-inst{align-items:center}}
 .foto-grupo-t{font-size:12px;font-weight:800;color:var(--muted);margin:2px 0 6px;text-transform:uppercase;letter-spacing:.04em}
-.foto-linha{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch}
-.foto-item{flex:0 0 auto;width:74px;display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:none;padding:0;cursor:pointer;font-family:inherit}
-.foto-item img,.foto-item .foto-em{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2.5px solid rgba(255,255,255,.25);font-size:28px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);transition:transform .15s,border-color .15s}
+.foto-linha{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.foto-item{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;background:none;border:none;padding:0;cursor:pointer;font-family:inherit}
+.foto-item img,.foto-item .foto-em{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2.5px solid rgba(255,255,255,.25);font-size:24px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);transition:transform .15s,border-color .15s}
 .foto-item:active img,.foto-item:active .foto-em{transform:scale(.92)}
 .foto-item.sel img,.foto-item.sel .foto-em{border-color:var(--cor,#e879f9)}
-.foto-item small{font-size:9.5px;color:var(--muted);text-align:center;line-height:1.25;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foto-item small{font-size:9px;color:var(--muted);text-align:center;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn-fora{border:1px solid var(--border);background:transparent;border-radius:10px;font-size:14px;cursor:pointer;
   padding:4px 6px;line-height:1;-webkit-tap-highlight-color:transparent;transition:transform .15s}
 .btn-fora.sel{background:#ef4444;border-color:#ef4444}
 .btn-fora:active{transform:scale(.92)}
-.adm-linha{grid-template-columns:44px 1fr 110px 84px 72px}
-.adm-linha.ad{grid-template-columns:44px 1fr 84px 84px 72px}
-.adm-linha.copo{grid-template-columns:1.2fr 1fr 74px 62px 72px}
-.adm-linha.beb{grid-template-columns:1.2fr 1fr 74px 72px}
+.adm-linha{grid-template-columns:26px 44px 1fr 110px 84px 112px}
+.adm-linha.ad{grid-template-columns:26px 44px 1fr 84px 84px 112px}
+.adm-linha.copo{grid-template-columns:26px 1.2fr 1fr 74px 62px 112px}
+.adm-linha.beb{grid-template-columns:26px 1.2fr 1fr 74px 112px}
 @media (max-width:640px){
-  .adm-linha{grid-template-columns:44px 1fr 90px 72px}
-  .adm-linha.ad{grid-template-columns:44px 1fr 90px 72px}
-  .adm-linha.copo{grid-template-columns:1fr 58px 40px 72px}
+  .adm-linha{grid-template-columns:20px 36px 1fr 80px 64px}
+  .adm-linha.ad{grid-template-columns:20px 36px 1fr 80px 64px}
+  .adm-linha.copo{grid-template-columns:20px 1fr 58px 44px 64px}
   .adm-linha.copo .adm-desc{display:none}
-  .adm-linha.beb{grid-template-columns:1fr 58px 72px}
+  .adm-linha.beb{grid-template-columns:20px 1fr 58px 64px}
   .adm-linha.beb .adm-desc{display:none}
+  .adm-acoes{display:grid;grid-template-columns:1fr 1fr;gap:3px;justify-items:stretch}
+  .adm-acoes button{text-align:center;padding-left:0;padding-right:0}
 }
 
 /* aviso do comprovante no PIX */
@@ -924,6 +945,13 @@ main{padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))}
   </div>
   <button class="instalar" id="btnInstalarPWA" type="button">Instalar</button>
   <button class="fechar" id="fecharBannerPWA" type="button" aria-label="Agora não">✕</button>
+</div>
+<div class="m-inst oculto" id="modalInstalar" role="dialog" aria-modal="true" aria-label="Como instalar o app da Toca do Açaí">
+  <div class="m-inst-box">
+    <button class="m-inst-fechar" id="fecharInstalar" type="button" aria-label="Fechar">✕</button>
+    <h3>📲 Instalar o app da Toca</h3>
+    <div id="passosInstalar"></div>
+  </div>
 </div>
 
 <!-- ===== 8. GAVETA DO CARRINHO ===== -->
@@ -1302,6 +1330,15 @@ main{padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))}
           <button class="btn-s v" id="btnExportCfg" type="button">📤 Exportar configuração (backup)</button>
           <button class="btn-s v" id="btnImportCfg" type="button">📥 Importar configuração</button>
         </div>
+      </div>
+      <div class="adm-card">
+        <div class="adm-card-t"><span class="ico">📲</span><div><h4>Instalar no celular</h4><small>o site vira um app na tela inicial</small></div></div>
+        <div class="adm-nota">Instale este site como <b>aplicativo</b>: ícone na tela inicial, abre em tela cheia e funciona até offline. Funciona em Android, iPhone, tablet e computador. Se você abriu pelo WhatsApp ou Instagram, o site avisa e ensina a abrir no Chrome/Safari antes.</div>
+        <div class="adm-actions">
+          <button class="btn-s z" id="btnInstalarAdm" type="button">📲 Instalar agora</button>
+          <button class="btn-s v" id="btnPassosInstalar" type="button">👀 Ver o passo a passo</button>
+        </div>
+        <div class="adm-nota oculto" id="statusInstalar"></div>
       </div>
       <div class="adm-card">
         <div class="adm-card-t"><span class="ico">🔒</span><div><h4>Segurança do admin</h4><small>quem é cliente não vê nada disso</small></div></div>
@@ -4240,8 +4277,9 @@ function renderSabor(){
   const lista = (CFG.sabores && CFG.sabores.length) ? CFG.sabores : ['Açaí Tradicional', 'Açaí com Maracujá', 'Maracujá Cremoso'];
   $('#chipsSabor').innerHTML = lista.map(s => {
     const fora = esg('sabores', s);
-    const midia = SAB_IMG[s]
-      ? `<img src="${SAB_IMG[s]}" alt="" draggable="false" loading="lazy">`
+    const foto = (CFG.imgs || {})[s] || SAB_IMG[s];
+    const midia = foto
+      ? `<img src="${foto}" alt="" draggable="false" loading="lazy">`
       : `<span class="sc-emoji">${emoji(s)}</span>`;
     return `<button type="button" class="sabor-card${sabor===s?' sel':''}${fora?' esgotado':''}" data-sabor="${esc(s)}" aria-pressed="${sabor===s}"${fora?' disabled':''}>
       ${midia}<span class="sc-txt"><span class="sc-nome">${esc(s)}</span><span class="sc-sub">${sub(s)}</span></span>${fora?'<span class="esg-mark">ESGOTADO</span>':'<span class="sel-mark">✓</span>'}</button>`;
@@ -4650,6 +4688,43 @@ const modoApp = () => window.matchMedia('(display-mode: fullscreen)').matches
   const banner = $('#bannerPWA'), btnInst = $('#btnInstalarPWA'), fecharB = $('#fecharBannerPWA');
   if (!banner || !btnInst) return;
 
+  const modalInst = $('#modalInstalar'), passosInst = $('#passosInstalar');
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  /* browsers embutidos (WhatsApp, Instagram, Facebook…) não conseguem instalar nada */
+  const embutido = /; wv\)|FBAN|FBAV|FBIOS|FBSV|Instagram|Snapchat|TikTok|musical|MicroMessenger|Line\/|Twitter|LinkedIn|Tr\/6|HeyTapBrowser|HuaweiBrowser|vivoBrowser|MiuiBrowser|OppoBrowser/i.test(navigator.userAgent)
+    || (ios && /CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo/i.test(navigator.userAgent));
+
+  /* passo a passo por aparelho (modal) */
+  const mostrePassos = tipo => {
+    const textos = {
+      iphone: {t:'No iPhone ou iPad (Safari)', passos:[
+        'Abra este site no <b>Safari</b>. Se você veio pelo WhatsApp ou Instagram, toque em <b>⋯</b> e escolha <b>Abrir no Safari</b> primeiro.',
+        'Toque no botão <b>Compartilhar</b> — o quadradinho com a seta ↑, na barra de baixo.',
+        'Desça a lista e toque em <b>Adicionar à Tela de Início</b>.',
+        'Confirme em <b>Adicionar</b>, no canto superior. O ícone da Toca aparece na tela! 💜']},
+      android: {t:'No Android (Chrome)', passos:[
+        'Abra este site no <b>Chrome</b>. Se veio pelo WhatsApp, toque em <b>⋮</b> → <b>Abrir no navegador</b> antes.',
+        'Toque no menu <b>⋮</b>, no canto superior direito.',
+        'Escolha <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b>).',
+        'Confirme — o ícone da Toca aparece na tela inicial! 💜']},
+      pc: {t:'No computador (Chrome/Edge)', passos:[
+        'Na barra de endereço, procure o ícone de instalar (um <b>⊕</b> ou um monitorzinho).',
+        'Clique nele e confirme <b>Instalar</b>.',
+        'O site abre numa janela própria, como um programa. 💜']},
+      embutido: {t:'Este navegador não permite instalar', passos:[
+        'Você está no navegador <b>dentro de um app</b> (WhatsApp, Instagram, Facebook…) — ele não instala nada.',
+        'Toque no <b>⋮</b> (Android) ou <b>⋯</b> (iPhone) no canto da tela.',
+        'Escolha <b>Abrir no navegador</b> — abre no Chrome/Safari de verdade.',
+        'Lá, toque em <b>Instalar</b> no site (ou siga o passo a passo). 💜']}
+    };
+    const d = textos[tipo] || textos.pc;
+    passosInst.innerHTML = '<div class="m-inst-t">' + d.t + '</div><ol>' + d.passos.map(p => '<li><span>' + p + '</span></li>').join('') + '</ol>';
+    modalInst.classList.remove('oculto');
+  };
+  window.__passosInstalar = mostrePassos;
+  $('#fecharInstalar').onclick = () => modalInst.classList.add('oculto');
+  modalInst.addEventListener('click', e => { if (e.target === modalInst) modalInst.classList.add('oculto'); });
+
   const dispensado = () => {
     try { return localStorage.getItem('toca_pwa_dispensado') === '1'; } catch(err){ return false; }
   };
@@ -4665,31 +4740,48 @@ const modoApp = () => window.matchMedia('(display-mode: fullscreen)').matches
     banner.classList.add('oculto'); evtInstalar = null;
     toast('App instalado! Abra pela ícone na tela inicial 💜');
   });
-  btnInst.onclick = async () => {
-    if (!evtInstalar) return;
-    evtInstalar.prompt();
-    try {
-      const r = await evtInstalar.userChoice;
-      if (r && r.outcome === 'accepted') toast('Instalando… já aparece na sua tela inicial 💜');
-    } catch(err){}
-    evtInstalar = null;
-    banner.classList.add('oculto');
+  const instaleAgora = () => {
+    if (embutido) return mostrePassos('embutido');
+    if (evtInstalar){
+      evtInstalar.prompt();
+      try {
+        evtInstalar.userChoice.then(r => {
+          if (r && r.outcome === 'accepted') toast('Instalando… já aparece na sua tela inicial 💜');
+        }).catch(() => {});
+      } catch(err){}
+      evtInstalar = null;
+      banner.classList.add('oculto');
+      return;
+    }
+    if (ios) return mostrePassos('iphone');
+    if (/Mobi|Android/i.test(navigator.userAgent)) return mostrePassos('android');
+    mostrePassos('pc');
   };
+  window.__instaleAgora = instaleAgora;
+  btnInst.onclick = () => { banner.classList.add('oculto'); instaleAgora(); };
   fecharB.onclick = () => {
     banner.classList.add('oculto');
     try { localStorage.setItem('toca_pwa_dispensado','1'); } catch(err){}
   };
 
   /* 3) iPhone/iPad: o Safari não dispara beforeinstallprompt —
-     o botão ensina o caminho (Compartilhar → Adicionar à Tela de Início) */
-  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+     o banner aparece e o botão abre o passo a passo */
   if (ios && !modoApp()){
     if (!dispensado()) banner.classList.remove('oculto');
-    btnInst.onclick = () => {
-      banner.classList.add('oculto');
-      toast('No iPhone: botão Compartilhar ↑ → "Adicionar à Tela de Início" 📲');
-      try { localStorage.setItem('toca_pwa_dispensado','1'); } catch(err){}
+  }
+
+  /* 4) botão de instalar dentro do admin (aba 🚀 Publicar) */
+  const bIA = document.getElementById('btnInstalarAdm'), bPI = document.getElementById('btnPassosInstalar');
+  if (bIA){
+    bIA.onclick = () => {
+      if (modoApp()){
+        const st = document.getElementById('statusInstalar');
+        if (st){ st.classList.remove('oculto'); st.textContent = '✅ Você já está usando o app instalado (tela cheia).'; }
+        return;
+      }
+      instaleAgora();
     };
+    if (bPI) bPI.onclick = () => mostrePassos(embutido ? 'embutido' : ios ? 'iphone' : (/Mobi|Android/i.test(navigator.userAgent) ? 'android' : 'pc'));
   }
 })();
 $('#fecharModal1').onclick = fecharModal;
@@ -5471,32 +5563,36 @@ function setPath(obj, path, valor){
 function renderAdmMenu(){
   const num = v => String(v ?? '').replace('.', ',');
   $('#admCopos').innerHTML = (CFG.copos||[]).map((c,i) => `
-    <div class="adm-linha copo">
+    <div class="adm-linha copo" data-grip-grupo="copos" data-grip-idx="${i}">
+      <button class="grip" title="Arraste para ordenar">☰</button>
       <input type="text" value="${esc(c.nome)}" data-path="copos.${i}.nome" placeholder="Nome">
       <input type="text" value="${esc(c.desc||'')}" data-path="copos.${i}.desc" placeholder="Descrição" class="adm-desc">
       <input type="text" value="${num(c.preco)}" data-path="copos.${i}.preco" data-num="1" title="Preço">
       <input type="text" value="${c.gratis}" data-path="copos.${i}.gratis" data-num="1" title="Cota grátis">
-      <span class="adm-acoes"><button class="btn-fora${esg('copos', c.id)?' sel':''}" data-fora="copos.${esc(c.id)}" title="Marcar ESGOTADO (indisponível agora)">🚫</button><button class="lixo" data-del="copos.${i}" title="Remover">🗑️</button></span>
+      <span class="adm-acoes"><button class="btn-ord" data-ord="copos.${i}.up" title="Mover para cima">▲</button><button class="btn-ord" data-ord="copos.${i}.down" title="Mover para baixo">▼</button><button class="btn-fora${esg('copos', c.id)?' sel':''}" data-fora="copos.${esc(c.id)}" title="Marcar ESGOTADO (indisponível agora)">🚫</button><button class="lixo" data-del="copos.${i}" title="Remover">🗑️</button></span>
     </div>`).join('');
   $('#admBebidas').innerHTML = (CFG.bebidas||[]).map((b,i) => `
-    <div class="adm-linha beb">
+    <div class="adm-linha beb" data-grip-grupo="bebidas" data-grip-idx="${i}">
+      <button class="grip" title="Arraste para ordenar">☰</button>
       <input type="text" value="${esc(b.nome)}" data-path="bebidas.${i}.nome" placeholder="Nome">
       <input type="text" value="${esc(b.desc||'')}" data-path="bebidas.${i}.desc" placeholder="Descrição" class="adm-desc">
       <input type="text" value="${num(b.preco)}" data-path="bebidas.${i}.preco" data-num="1" title="Preço">
-      <span class="adm-acoes"><button class="btn-fora${esg('bebidas', b.id)?' sel':''}" data-fora="bebidas.${esc(b.id)}" title="Marcar ESGOTADO (indisponível agora)">🚫</button><button class="lixo" data-del="bebidas.${i}" title="Remover">🗑️</button></span>
+      <span class="adm-acoes"><button class="btn-ord" data-ord="bebidas.${i}.up" title="Mover para cima">▲</button><button class="btn-ord" data-ord="bebidas.${i}.down" title="Mover para baixo">▼</button><button class="btn-fora${esg('bebidas', b.id)?' sel':''}" data-fora="bebidas.${esc(b.id)}" title="Marcar ESGOTADO (indisponível agora)">🚫</button><button class="lixo" data-del="bebidas.${i}" title="Remover">🗑️</button></span>
     </div>`).join('');
-  $('#admSabores').innerHTML = (CFG.sabores||[]).map(s => `
-    <div class="adm-linha" style="grid-template-columns:1fr 72px">
+  $('#admSabores').innerHTML = (CFG.sabores||[]).map((s,i) => `
+    <div class="adm-linha" data-grip-grupo="sabores" data-grip-idx="${i}" style="grid-template-columns:26px 1fr 104px">
+      <button class="grip" title="Arraste para ordenar">☰</button>
       <input type="text" value="${esc(s)}" readonly title="Nome do sabor (fixo)">
-      <span class="adm-acoes"><button class="btn-fora${esg('sabores', s)?' sel':''}" data-fora="sabores.${esc(s)}" title="Marcar ESGOTADO (indisponível agora)">🚫</button></span>
+      <span class="adm-acoes"><button class="btn-ord" data-ord="sabores.${i}.up" title="Mover para cima">▲</button><button class="btn-ord" data-ord="sabores.${i}.down" title="Mover para baixo">▼</button><button class="btn-fora${esg('sabores', s)?' sel':''}" data-fora="sabores.${esc(s)}" title="Marcar ESGOTADO (indisponível agora)">🚫</button></span>
     </div>`).join('');
   const linhaItem = (grupo, arr) => arr.map((a,i) => `
-    <div class="adm-linha${grupo==='ad5'||grupo==='ad6'||grupo==='ad7'?' ad':''}">
+    <div class="adm-linha${grupo==='ad5'||grupo==='ad6'||grupo==='ad7'?' ad':''}" data-grip-grupo="${grupo}" data-grip-idx="${i}">
+      <button class="grip" title="Arraste para ordenar">☰</button>
       <input type="text" value="${esc(a.e||'🥄')}" data-path="${grupo}.${i}.e" title="Emoji" style="text-align:center">
       <input type="text" value="${esc(a.n)}" data-path="${grupo}.${i}.n" placeholder="Nome">
       ${grupo==='ad5'||grupo==='ad6'||grupo==='ad7' ? `<input type="text" value="${num(a.p)}" data-path="${grupo}.${i}.p" data-num="1" title="Preço">` : `<span class="col-oculta-m"></span>`}
       <span class="col-oculta-m"></span>
-      <span class="adm-acoes"><button class="btn-fora${esg(grupo, a.n)?' sel':''}" data-fora="${grupo}.${esc(a.n)}" title="Marcar ESGOTADO (indisponível agora)">🚫</button><button class="lixo" data-del="${grupo}.${i}" title="Remover">🗑️</button></span>
+      <span class="adm-acoes"><button class="btn-ord" data-ord="${grupo}.${i}.up" title="Mover para cima">▲</button><button class="btn-ord" data-ord="${grupo}.${i}.down" title="Mover para baixo">▼</button><button class="btn-fora${esg(grupo, a.n)?' sel':''}" data-fora="${grupo}.${esc(a.n)}" title="Marcar ESGOTADO (indisponível agora)">🚫</button><button class="lixo" data-del="${grupo}.${i}" title="Remover">🗑️</button></span>
     </div>`).join('');
   $('#admAcomp').innerHTML = linhaItem('acomp', CFG.acomp||[]);
   $('#admCaldas').innerHTML = linhaItem('caldas', CFG.caldas||[]);
@@ -5505,6 +5601,67 @@ function renderAdmMenu(){
   $('#admAd7').innerHTML = linhaItem('ad7', CFG.ad7||[]);
   renderAdmFotos();
 }
+function moverItem(grupo, i, dir){
+  const arr = CFG[grupo] || [];
+  const j = i + (dir === 'up' ? -1 : 1);
+  if (j < 0 || j >= arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  renderAdmMenu();
+  renderCopos(); renderSabor(); renderBebidas(); renderChipsAcomp(); renderChipsCaldas(); renderChipsAd();
+  toast('↕️ Ordem trocada! Toque em 💾 Salvar e aplicar menu para valer no site ✅');
+}
+
+/* ---------- ↕️ arrastar para ordenar (funciona com toque e mouse) ---------- */
+let dragMenu = null;
+$('#adminPanel').addEventListener('pointerdown', e => {
+  const g = e.target.closest('.grip');
+  if (!g || !e.isPrimary) return;
+  const row = g.closest('.adm-linha');
+  dragMenu = {row, cont: row.parentElement, grupo: row.dataset.gripGrupo, y0: e.clientY, ativo: false};
+  try{ row.setPointerCapture(e.pointerId); }catch(_){}
+  e.preventDefault();
+});
+$('#adminPanel').addEventListener('pointermove', e => {
+  if (!dragMenu) return;
+  if (!dragMenu.ativo){
+    if (Math.abs(e.clientY - dragMenu.y0) < 7) return;
+    dragMenu.ativo = true;
+    dragMenu.row.classList.add('drag-sel');
+    document.body.classList.add('dragging-menu');
+  }
+  e.preventDefault();
+  const corpo = dragMenu.row.closest('.admin-corpo');
+  if (corpo){
+    const b = corpo.getBoundingClientRect();
+    if (e.clientY < b.top + 60) corpo.scrollTop -= 12;
+    else if (e.clientY > b.bottom - 60) corpo.scrollTop += 12;
+  }
+  const outros = [...dragMenu.cont.children].filter(r => r.classList.contains('adm-linha') && r !== dragMenu.row);
+  let ref = null;
+  for (const rr of outros){
+    const b = rr.getBoundingClientRect();
+    if (e.clientY < b.top + b.height/2){ ref = rr; break; }
+  }
+  if (ref) dragMenu.cont.insertBefore(dragMenu.row, ref);
+  else dragMenu.cont.appendChild(dragMenu.row);
+});
+const fimDragMenu = () => {
+  if (!dragMenu) return;
+  const {row, cont, grupo, ativo} = dragMenu;
+  dragMenu = null;
+  row.classList.remove('drag-sel');
+  document.body.classList.remove('dragging-menu');
+  if (!ativo) return;
+  const arr = CFG[grupo] || [];
+  const novo = [...cont.children].filter(r => r.classList.contains('adm-linha')).map(r => +r.dataset.gripIdx);
+  CFG[grupo] = novo.map(ix => arr[ix]).filter(Boolean);
+  renderAdmMenu();
+  renderCopos(); renderSabor(); renderBebidas(); renderChipsAcomp(); renderChipsCaldas(); renderChipsAd();
+  toast('↕️ Ordenado arrastando ✓ — toque em 💾 Salvar e aplicar menu para valer no site');
+};
+$('#adminPanel').addEventListener('pointerup', fimDragMenu);
+$('#adminPanel').addEventListener('pointercancel', fimDragMenu);
+
 $('#adminPanel').addEventListener('input', e => {
   const p = e.target.dataset && e.target.dataset.path;
   if (!p) return;
@@ -5534,6 +5691,13 @@ $('#adminPanel').addEventListener('click', e => {
     renderAdmMenu();
     return;
   }
+  /* ↕️ mover item na ordem do menu (sobe/desce entre os vizinhos) */
+  const o = e.target.closest('[data-ord]');
+  if (o){
+    const [grupo, idx, dir] = o.dataset.ord.split('.');
+    moverItem(grupo, +idx, dir);
+    return;
+  }
   const d = e.target.closest('[data-del]');
   if (!d) return;
   const [grupo, idx] = d.dataset.del.split('.');
@@ -5558,9 +5722,11 @@ $('#btnAddAd7').onclick = () => { CFG.ad7.push({n:'Novo bubbles', e:'🫧', p:7}
 
 /* ---------- editor de fotos do cardápio (celular: abre galeria/câmera) ---------- */
 let fotoAlvo = null;
+const saborEmoji = s => /maracuj/i.test(s) && /aça/i.test(s) ? '🍇🍈' : /maracuj/i.test(s) ? '🍈' : /aça/i.test(s) ? '🍇' : '🥤';
 function itensComFoto(){
   return [
     {t:'🥤 Copos & marmitas', itens:(CFG.copos||[]).map(c => ({n:c.nome, e:'🍧', foto:(CFG.imgs||{})[c.nome] || IMG[c.img]}))},
+    {t:'🍧 Sabores do frozen', itens:(CFG.sabores||[]).map(s => ({n:s, e:saborEmoji(s), foto:(CFG.imgs||{})[s] || SAB_IMG[s]}))},
     {t:'🧃 Bebidas', itens:(CFG.bebidas||[]).map(b => ({n:b.nome, e:'🥤', foto:(CFG.imgs||{})[b.nome] || IMG[b.img]}))},
     {t:'🥣 Acompanhamentos', itens:(CFG.acomp||[]).map(a => ({n:a.n, e:a.e, foto:(CFG.imgs||{})[a.n] || AC_IMG[a.n]}))},
     {t:'🍯 Caldas', itens:(CFG.caldas||[]).map(a => ({n:a.n, e:a.e, foto:(CFG.imgs||{})[a.n] || AC_IMG[a.n]}))},
@@ -5596,7 +5762,7 @@ $('#inFotoItem').addEventListener('change', e => {
     CFG.imgs = CFG.imgs || {};
     CFG.imgs[nome] = du;
     fotoAlvo = null;
-    renderAdmFotos(); renderCopos(); renderBebidas(); renderChipsAcomp(); renderChipsCaldas(); renderChipsAd();
+    renderAdmFotos(); renderCopos(); renderSabor(); renderBebidas(); renderChipsAcomp(); renderChipsCaldas(); renderChipsAd();
     toast('📸 Foto de ' + nome + ' atualizada! Toque em 💾 Salvar e aplicar menu para enviar para todos ✅');
   });
 });
