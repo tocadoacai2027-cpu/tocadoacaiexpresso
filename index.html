@@ -1309,7 +1309,7 @@ body.dragging-menu{user-select:none;-webkit-user-select:none}
       </div>
       <div class="adm-card">
         <div class="adm-card-t"><span class="ico">⚙️</span><div><h4>Conexão da IA (opcional)</h4><small>funciona offline — a API deixa ele entender pedidos livres</small></div></div>
-        <div class="adm-nota">✅ <b>Funciona offline:</b> o assistente entende comandos em português e edita a loja na hora. <b>IA online (opcional):</b> cole uma chave de API para que ele também entenda pedidos livres e mais complexos. A chave fica só neste navegador.</div>
+        <div class="adm-nota">✅ <b>Edita tudo:</b> menu, preços, bebidas, horário, taxa de entrega, abrir/fechar a loja, PIX, cores, textos e <b>qualquer campo</b> do site — e salva na nuvem sozinho (os clientes recebem na hora). <b>IA online (opcional):</b> cole uma chave de API para que ele também entenda pedidos livres e mais complexos. A chave fica só neste navegador.</div>
         <div class="adm-grid2">
           <div class="adm-campo"><label>Endpoint (compatível com OpenAI)</label><input id="aIaUrl" type="text" placeholder="https://api.z.ai/api/paas/v4/chat/completions"></div>
           <div class="adm-campo"><label>Modelo</label><input id="aIaModelo" type="text" placeholder="glm-4-flash"></div>
@@ -4890,71 +4890,69 @@ function enderecoCompleto(){
 function novoNum(){ return '#' + Math.floor(1000 + Math.random() * 9000); }
 
 function montaMsg(ord){
-  /* Ticket 80mm para o robô de impressão (Baileys + RawBT): 1ª linha = palavra-chave
-     do gatilho (no robô: PALAVRA_CHAVE). Texto puro SEM acento, SEM emoji e SEM
-     asterisco (nada que quebre a impressora); largura = LARGURA_PAPEL do robô;
-     linhas longas são quebradas automaticamente pela impressora — dados nunca são cortados. */
+  /* Mensagem do pedido para o WhatsApp da loja — formato limpo pedido
+     pela loja: cabeçalho (loja, nº, data, cliente, endereço, pagamento,
+     entrega) e embaixo um bloco por item. Continua ticket seguro para a
+     impressora (Baileys + RawBT): 1ª linha = palavra-chave do gatilho
+     (no robô: PALAVRA_CHAVE); texto puro SEM acento, SEM emoji e SEM
+     asterisco; sem linhas de separação com traços. */
   const W = 48;
-  const linha = '-'.repeat(W);
   const par = (a,b) => { a=String(a); b=String(b); const esp = Math.max(1, W-a.length-b.length); return a + ' '.repeat(esp) + b; };
   const L = [];
   L.push(semAcento(CFG.robot.gatilho || 'NOVO PEDIDO'));
-  L.push(semAcento(CFG.loja || 'TOCA DO ACAI').toUpperCase());
-  L.push(linha);
-  /* taxa manual (sem GPS) → 1ª linha útil do ticket já avisa a cozinha para conferir o endereço */
-  if (ord.entrega === 'Delivery' && ord.taxaOrigem === 'manual'){
-    L.push('[ATENCAO: TAXA MANUAL - CONFERIR ENDERECO]');
-    L.push(linha);
-  }
+  L.push(semAcento(CFG.loja || 'TOCA DO ACAI EXPRESSO').toUpperCase());
   L.push(par('PEDIDO: ' + ord.num, 'ITENS: ' + cartQtd()));
-  L.push('DATA: ' + semAcento(ord.data));
-  L.push('CLIENTE: ' + semAcento(ord.nome).toUpperCase());
-  L.push(linha);
+  L.push('DATA: ' + String(ord.data || '').split(' ')[0]);
+  L.push('CLIENTE: ' + semAcento(ord.nome || '').toUpperCase());
+  L.push('ENDERECO: ' + (ord.entrega === 'Delivery' ? semAcento(ord.endereco || '').toUpperCase() : 'RETIRADA NA LOJA'));
+  if (ord.entrega === 'Delivery' && ord.cep) L.push('CEP: ' + semAcento(ord.cep));
+  const pagTxt = ['PAGAMENTO: ' + semAcento(ord.pag || '').toUpperCase()];
+  if (ord.pag === 'Pix'){
+    if (ord.pix && ord.pix.status === 'verificado') pagTxt.push(' (VERIFICADO NO SITE)');
+    else if (ord.pix && ord.pix.status === 'informado') pagTxt.push(' (CONFERIR COMPROVANTE)');
+  } else {
+    if (ord.troco) pagTxt.push(' - TROCO PARA ' + semAcento(ord.troco).toUpperCase());
+    if ((ord.taxaMaquininha || 0) > 0) pagTxt.push(' (MAQUININHA + ' + fmt(ord.taxaMaquininha) + ')');
+  }
+  L.push(pagTxt.join(''));
+  if (ord.entrega === 'Delivery'){
+    L.push('ENTREGA: DELIVERY');
+    if (ord.taxaOrigem === 'gps' && ord.gps){
+      L.push('REGIAO: ' + semAcento(ord.taxaRegiao || '').toUpperCase() + ' - TAXA: ' + fmt(ord.taxa || 0));
+      L.push('LOCALIZACAO GPS: https://maps.google.com/?q=' + ord.gps.lat.toFixed(6) + ',' + ord.gps.lng.toFixed(6));
+    }
+    if (ord.taxaOrigem === 'manual') L.push('[ATENCAO: TAXA MANUAL - CONFERIR ENDERECO]');
+  } else {
+    L.push('ENTREGA: RETIRADA NO BALCAO');
+  }
+  L.push('');
+  L.push('');
   ord.items.forEach(it => {
     if (it.beb){
       const b = (CFG.bebidas||[]).find(x=>x.id===it.id) || {nome: it.nomeFallback || 'Bebida'};
-      L.push(par(`${it.qty}x ${semAcento(b.nome).toUpperCase().slice(0,22)}`, fmt((b.preco||0)*it.qty)));
+      L.push('PEDIDO:');
+      L.push('  BEBIDA: ' + it.qty + 'X ' + semAcento(b.nome).toUpperCase());
       L.push('');
       return;
     }
     const c = CFG.copos.find(x=>x.id===it.sizeId) || {nome: it.nomeFallback || 'Item', gratis:0};
-    L.push(par(`${it.qty}x ${semAcento(c.nome).toUpperCase().slice(0,22)}`, fmt(itemPreco(it)*it.qty)));
+    L.push('PEDIDO:');
+    L.push('  COPO: ' + it.qty + 'X ' + semAcento(c.nome).toUpperCase());
     L.push('  SABOR: ' + semAcento(it.sabor || SABOR_PADRAO).toUpperCase());
     if (it.acomp && it.acomp.length){
       const exc = Math.max(0, it.acomp.length - (c.gratis ?? 0));
       L.push('  ACOMP: ' + semAcento(it.acomp.slice(0, c.gratis ?? 0).join(', ')).toUpperCase());
       if (exc) L.push('  EXTRA: ' + semAcento(it.acomp.slice(c.gratis ?? 0).map(n=>`${n} (+${fmt(CFG.precoExcedente)})`).join(', ')).toUpperCase());
+    } else {
+      L.push('  ACOMP: SEM');
     }
-    if (it.calda && it.calda !== 'Sem calda') L.push('  CALDA: ' + semAcento(it.calda).toUpperCase());
-    if (it.ad && it.ad.length) L.push('  AD: ' + semAcento(it.ad.map(n=>`${n} (+${fmt(adPreco(n))})`).join(', ')).toUpperCase());
+    L.push('  CALDA: ' + (it.calda && it.calda !== 'Sem calda' ? semAcento(it.calda).toUpperCase() : 'SEM'));
+    if (it.ad && it.ad.length) L.push('  ADICIONAIS: ' + semAcento(it.ad.map(n=>`${n} (+${fmt(adPreco(n))})`).join(', ')).toUpperCase());
     L.push('');
   });
-  L.push(linha);
-  if (ord.entrega === 'Delivery'){
-    L.push('ENTREGA: DELIVERY - MOTORIZADO');
-    L.push('ENDERECO: ' + semAcento(ord.endereco || '').toUpperCase());
-    if (ord.cep) L.push('CEP: ' + semAcento(ord.cep));
-    if (ord.taxaOrigem === 'gps' && ord.gps){
-      L.push('LOCALIZACAO GPS: https://maps.google.com/?q=' + ord.gps.lat.toFixed(6) + ',' + ord.gps.lng.toFixed(6));
-      L.push('REGIAO: ' + semAcento(ord.taxaRegiao || '').toUpperCase() + ' - TAXA DE ENTREGA: ' + fmt(ord.taxa || 0));
-    }
-  } else {
-    L.push('ENTREGA: RETIRADA NO BALCAO - TOCA DO ACAI (SEM TAXA)');
-  }
-  if (ord.pag === 'Pix'){
-    if (ord.pix && ord.pix.status === 'verificado')
-      L.push('PAGAM: PIX VERIFICADO NO SITE (' + fmt(ord.pix.valor) + ' AS ' + semAcento(ord.pix.pagoAs||'') + ')');
-    else if (ord.pix && ord.pix.status === 'informado')
-      L.push('PAGAM: PIX CONFIRMADO PELO CLIENTE (' + fmt(ord.pix.valor) + ') - CONFERIR COMPROVANTE');
-    else
-      L.push('PAGAM: PIX');
-  } else {
-    L.push('PAGAM: ' + semAcento(ord.pag).toUpperCase() + ' NA ENTREGA' + (ord.troco ? ' - TROCO PARA ' + semAcento(ord.troco).toUpperCase() : ''));
-    if ((ord.taxaMaquininha || 0) > 0) L.push(par('TAXA MAQUININHA (CARTAO)', fmt(ord.taxaMaquininha)));
-  }
-  L.push(linha);
+  if (ord.entrega === 'Delivery') L.push('TAXA DE ENTREGA: ' + fmt(ord.taxa || 0));
   L.push(par('TOTAL', fmt(ord.total)));
-  L.push(linha);
+  L.push('');
   L.push('OBRIGADO! VOLTE SEMPRE');
   return L.join('\n');
 }
@@ -5906,13 +5904,21 @@ function chatPush(txt, quem){
   box.appendChild(d);
   box.scrollTop = box.scrollHeight;
 }
+function ondeSalvou(){
+  const est = (window.TocaCloud && TocaCloud.estado) || '';
+  if (est === 'conectado') return '💾 Salvo e enviado para a nuvem ✓ (os clientes já recebem)';
+  if (est === 'nao-configurado') return '💾 Salvo neste aparelho — para mandar para todos, configure a nuvem 🔥';
+  return '💾 Salvo ✓ (a nuvem envia em segundo plano)';
+}
 function chatBoasVindas(){
   if ($('#chatMsgs').children.length) return;
-  chatPush('Oi! Sou o assistente de IA do admin 💜 Pode me pedir em português, por exemplo:\n• "mude o preço do Copo 500ml para 15,00"\n• "cota do Copo 400ml é 4"\n• "adiciona copo 700ml por 16"\n• "adiciona adicional Leite Ninho por 4"\n• "renomeia o sabor Maracujá Cremoso para Maracujá da Casa"\n• "nome da loja Toca do Açaí & Cia"\n• "chave pix 123.456.789-00"\n• "ir para o ar"', 'bot');
+  chatPush('Oi! Sou o assistente de IA do admin 💜 Pode me pedir em português, por exemplo:\n• "mude o preço do Copo 500ml para 15,00"\n• "adiciona bebida Guaraná Antarctica por 8"\n• "taxa da área urbana para 6"\n• "horário abre 15 fecha 23"\n• "fecha a loja agora"\n• "adiciona copo 700ml por 16"\n• "nome da loja Toca do Açaí & Cia"\n• "chave pix 123.456.789-00"\n• "ir para o ar"\nCom a IA online configurada eu edito QUALQUER campo do site (textos, cores, taxas, fotos, robô…) e salvo sozinho.', 'bot');
 }
 const AJUDA_CHIPS = [
   'mude o preço do Copo 500ml para 15',
-  'cota do Copo 400ml é 4',
+  'adiciona bebida Guaraná Antarctica por 8',
+  'taxa da área urbana para 6',
+  'horário abre 15 fecha 23',
   'adiciona adicional Leite Ninho por 4',
   'remova Mini Oreo',
   'renomeia o sabor Maracujá Cremoso para Maracujá da Casa',
@@ -5951,6 +5957,45 @@ function achaItem(grupo, nome){
   const n = NORM(nome);
   return g.find(x => NORM(x.n).includes(n)) || g.find(x => n.includes(NORM(x.n)));
 }
+/* ------- caminhos genéricos no CFG (setCfg/delCfg/addCfg): "entregaTaxa.urbana", "copos.0.preco" -------
+   Seguro: só letras/números/índices; __proto__, constructor e prototype são bloqueados. */
+const CAM_OK = p => /^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z0-9_]+|\.\d+)*$/.test(String(p || '')) && !/(__proto__|constructor|prototype)/.test(String(p || ''));
+function pegaCam(p){
+  if (!CAM_OK(p)) return undefined;
+  return String(p).split('.').reduce((o,k) => (o == null ? o : o[k]), CFG);
+}
+function poeCam(p, v){
+  if (!CAM_OK(p)) return false;
+  const ks = String(p).split('.');
+  const ult = ks.pop();
+  let o = CFG;
+  for (const k of ks){
+    if (o == null || typeof o !== 'object') return false;
+    if (o[k] == null || typeof o[k] !== 'object'){
+      if (/^\d+$/.test(k)) return false;
+      o[k] = {};
+    }
+    o = o[k];
+  }
+  if (o == null || typeof o !== 'object') return false;
+  o[ult] = v;
+  return true;
+}
+function delCam(p){
+  if (!CAM_OK(p)) return false;
+  const ks = String(p).split('.');
+  const ult = ks.pop();
+  let o = CFG;
+  for (const k of ks){
+    if (o == null || typeof o[k] !== 'object') return false;
+    o = o[k];
+  }
+  if (o == null || typeof o !== 'object') return false;
+  if (Array.isArray(o) && /^\d+$/.test(ult)){ o.splice(parseInt(ult,10), 1); return true; }
+  if (ult in o){ delete o[ult]; return true; }
+  return false;
+}
+const achaRegiao = v => { const n = NORM(v || ''); return /bola|manaus/.test(n) ? 'bolaManaus' : /urbana|area|centro|bairro/.test(n) ? 'urbana' : null; };
 const OPS = {
   setLoja: v => { CFG.loja = v; },
   setSubtitulo: v => { CFG.subtitulo = v; },
@@ -5980,8 +6025,18 @@ const OPS = {
     return true; },
   updItem: v => { const g = achaGrupo(v.grupo); if (!g) return false; const it = achaItem(g, v.nome); if (it && v.preco != null){ it.p = parseFloat(v.preco)||it.p; return true; } return false; },
   delItem: v => { const g = achaGrupo(v.grupo); if (!g) return false; const i = (CFG[g]||[]).findIndex(x => NORM(x.n) === NORM(v.nome)); if (i >= 0){ CFG[g].splice(i,1); return true; } return false; },
+  /* ------- poder total: editar QUALQUER campo do site ------- */
+  setCfg: v => poeCam(v && v.caminho, v ? v.valor : undefined),
+  addCfg: v => { const a = pegaCam(v && v.caminho); if (!Array.isArray(a)) return false; a.push(v.valor); return true; },
+  delCfg: v => delCam(v && v.caminho),
+  addBebida: v => { if (!v || !v.nome) return false; CFG.bebidas = CFG.bebidas || []; CFG.bebidas.push({id:'b'+Date.now(), nome:String(v.nome), preco:parseFloat(v.preco)||0, img:'', desc:v.desc||''}); return true; },
+  updBebida: v => { const alvo = NORM(v && v.nome); const b = (CFG.bebidas||[]).find(x => NORM(x.nome).includes(alvo)) || (CFG.bebidas||[]).find(x => alvo.includes(NORM(x.nome))); if (!b) return false; if (v.preco != null) b.preco = parseFloat(v.preco)||b.preco; if (v.novoNome) b.nome = v.novoNome; if (v.desc != null) b.desc = v.desc; return true; },
+  delBebida: v => { const i = (CFG.bebidas||[]).findIndex(x => NORM(x.nome) === NORM(v && v.nome)); if (i >= 0){ CFG.bebidas.splice(i,1); return true; } return false; },
+  setHorario: v => { CFG.horarioFuncionamento = {abre: Math.max(0, Math.min(23, parseInt(v && v.abre, 10) || 14)), fecha: Math.max(0, Math.min(23, parseInt(v && v.fecha, 10) || 0))}; return true; },
+  setAberto: v => { const n = NORM(v); CFG.lojaAberta = /abert|abrir/.test(n) ? true : /fech|fechar/.test(n) ? false : null; return true; },
+  setTaxaRegiao: v => { const r = achaRegiao(v && v.regiao); if (!r) return false; CFG.entregaTaxa = CFG.entregaTaxa || {}; CFG.entregaTaxa[r] = parseFloat(v && v.preco) || 0; return true; },
 };
-const VALOR_OPS = new Set(['setLoja','setSubtitulo','setCidade','setWhatsapp','setLetreiro','setPrecoExcedente','setCor','setPixChave','setPixRecebedor','setPixCidade','setModoVerificacao','setGatilho','setSabores']);
+const VALOR_OPS = new Set(['setLoja','setSubtitulo','setCidade','setWhatsapp','setLetreiro','setPrecoExcedente','setCor','setPixChave','setPixRecebedor','setPixCidade','setModoVerificacao','setGatilho','setSabores','setHorario','setAberto','setTaxaRegiao']);
 function aplicarOps(ops){
   let feitas = [];
   (ops||[]).forEach(o => {
@@ -5990,7 +6045,7 @@ function aplicarOps(ops){
     const ok = fn(VALOR_OPS.has(o.op) ? o.valor : o);
     if (ok !== false) feitas.push(o.op + (o.nome ? `: ${o.nome}` : ''));
   });
-  if (feitas.length){ saveCfg(); aplicarCfg(); fillLoja(); fillPix(); renderAdmMenu(); renderSabor(); }
+  if (feitas.length){ saveCfg(); aplicarCfg(); fillLoja(); fillPix(); renderAdmMenu(); renderSabor(); salvarNuvem(); }
   return feitas;
 }
 
@@ -6017,6 +6072,37 @@ function interpretar(txt){
   if (/^(ajuda|help|comandos|o que (voce|vc) (pode|sabe) fazer)/.test(t)) return {help:true};
 
   if (m = t.match(/(?:ir para o ar|publica|publicar|subir o site|colocar no ar|manda para o ar)/)) return {pub:true};
+
+  /* bebidas (menu próprio, fora dos adicionais) */
+  if (m = t.match(new RegExp(`(?:mud|troc|alter|atualiz)[a-z]*\\s+(?:o\\s+|a\\s+)?preco\\s+(?:da|do)\\s+bebida\\s+(.+?)\\s+${BRL}${VAL}\\s*$`, 'id'))) {
+    const val = parseFloat(m[2].replace(',','.'));
+    const alvo = orig(m,1);
+    const b = (CFG.bebidas||[]).find(x => NORM(x.nome).includes(NORM(alvo))) || (CFG.bebidas||[]).find(x => NORM(alvo).includes(NORM(x.nome)));
+    if (b) return {ops:[{op:'updBebida', nome:b.nome, preco:val}], msg:`Preço da bebida **${b.nome}** alterado para **${fmt(val)}** ✅`};
+    return {msg:`Não achei a bebida "${alvo}". Veja os nomes na aba 🍧 Menu.`};
+  }
+  if (m = t.match(new RegExp(`(?:adiciona|adicionar|acrescenta)\\s+(?:uma\\s+|o\\s+)?bebida\\s+(.+?)\\s+${BRL}${VAL}\\s*$`, 'id'))) {
+    const nome = orig(m,1).trim();
+    return {ops:[{op:'addBebida', nome, preco:parseFloat(m[2].replace(',','.'))}], msg:`Bebida **${nome}** adicionada ao menu ✅`};
+  }
+  if (m = t.match(/(?:remove|remova|tira|tirar|exclui|excluir)\s+(?:a\s+)?bebida\s+(.+)/)) {
+    return {ops:[{op:'delBebida', nome:orig(m,1).trim()}], msg:`Bebida removida do menu ✅`};
+  }
+  /* horário de funcionamento */
+  if (m = t.match(/(?:horario)\D*?(\d{1,2})\D+?(\d{1,2})/)) {
+    const abre = Math.min(23, parseInt(m[1],10)), fecha = Math.min(23, parseInt(m[2],10));
+    return {ops:[{op:'setHorario', valor:{abre, fecha}}], msg:`Horário atualizado: abre ${abre}h e fecha ${fecha === 0 ? 'meia-noite' : fecha + 'h'} ✅`};
+  }
+  /* abrir / fechar a loja na hora (suspõe o horário automático) */
+  if (/^(abrir|abre|aberta|fechar|fecha|fechada)\s*(a\s+loja|loja|agora)?$/.test(t)) {
+    const abrir = /^(abrir|abre|aberta)/.test(t);
+    return {ops:[{op:'setAberto', valor: abrir ? 'aberto' : 'fechado'}], msg: abrir ? 'Loja ABERTA ✅ — o horário automático fica suspenso até você mudar' : 'Loja FECHADA ✅ — o site mostra fechado até você abrir de novo'};
+  }
+  /* taxa de entrega por região */
+  if (m = t.match(new RegExp(`taxa\\s+(?:de\\s+entrega\\s+)?(?:da\\s+|do\\s+)?(?:area\\s+|regiao\\s+)?(urbana|bola\\s*(?:sentido\\s*manaus)?|manaus)?[^\\d]*?${VAL}`))) {
+    const val = parseFloat((m[2] || m[1]).replace(',','.'));
+    if (!isNaN(val)) return {ops:[{op:'setTaxaRegiao', valor:{regiao: achaRegiao(m[1]) === 'bolaManaus' ? 'Da Bola' : 'urbana', preco: val}}], msg:`Taxa de entrega atualizada para **${fmt(val)}** ✅`};
+  }
 
   if (m = t.match(new RegExp(`(?:mud|troc|alter|atualiz|defin)[a-z]*\\s+(?:o\\s+|a\\s+)?preco\\s+(?:do|da)\\s+(?:copo\\s+)?(.+?)\\s+${BRL}${VAL}\\s*$`, 'id'))) {
     const val = parseFloat(m[2].replace(',','.'));
@@ -6103,12 +6189,21 @@ function interpretar(txt){
   return null;
 }
 
+/* resume o CFG para o prompt da IA: textos e listas longas (ex.: polígono do GPS)
+   viram marcadores — a IA não precisa deles e não deve alterá-los */
+const resumoCfg = x => {
+  if (typeof x === 'string') return x.length > 200 ? '[texto longo — não altere]' : x;
+  if (Array.isArray(x)) return (x.length > 14 && x.every(y => typeof y !== 'object' && !Array.isArray(y))) ? '[lista com ' + x.length + ' itens — não altere]' : x.map(resumoCfg);
+  if (x && typeof x === 'object'){ const o = {}; for (const k of Object.keys(x)) o[k] = resumoCfg(x[k]); return o; }
+  return x;
+};
+
 /* ---------- IA online (opcional, compatível com OpenAI) ---------- */
 async function iaOnline(comando){
   let ia = {};
   try { ia = JSON.parse(localStorage.getItem('toca_ia') || '{}'); } catch(e){}
   if (!ia.url || !ia.chave) return null;
-  const sistema = `Você é o assistente administrador do site da loja "${CFG.loja}" (açaí). Responda APENAS com um JSON válido, sem texto fora dele, no formato {"ops":[...],"fale":"confirmação curta em português"}. Operações permitidas: {"op":"setLoja","valor"}, {"op":"setSubtitulo","valor"}, {"op":"setCidade","valor"}, {"op":"setWhatsapp","valor"}, {"op":"setLetreiro","valor":[...]}, {"op":"setSabores","valor":["Açaí Tradicional",...]}, {"op":"setPrecoExcedente","valor":número}, {"op":"setCor","valor":"#hex"}, {"op":"setPixChave","valor"}, {"op":"setPixRecebedor","valor"}, {"op":"setPixCidade","valor"}, {"op":"setModoVerificacao","valor":"auto|manual"}, {"op":"setGatilho","valor"}, {"op":"addCopo","nome","preco","gratis","desc"}, {"op":"updCopo","nome","preco?","gratis?","desc?","novoNome?"}, {"op":"delCopo","nome"}, {"op":"addItem","grupo":"acomp|caldas|ad5|ad6","nome","emoji?","preco?"}, {"op":"updItem","grupo","nome","preco"}, {"op":"delItem","grupo","nome"}. Se não houver nada a mudar, devolva {"ops":[],"fale":"..."}. Config atual: ${JSON.stringify(CFG).slice(0,3500)}`;
+  const sistema = `Você é o assistente administrador do site da loja "${CFG.loja}" (açaí) e pode editar QUALQUER coisa do site. Responda APENAS com um JSON válido, sem texto fora dele, no formato {"ops":[...],"fale":"confirmação curta em português para o dono"}. Operações específicas: {"op":"setLoja","valor"}, {"op":"setSubtitulo","valor"}, {"op":"setCidade","valor"}, {"op":"setWhatsapp","valor"}, {"op":"setLetreiro","valor":[...]}, {"op":"setSabores","valor":["Açaí Tradicional"]}, {"op":"setPrecoExcedente","valor":número}, {"op":"setCor","valor":"#hex"}, {"op":"setPixChave","valor"}, {"op":"setPixRecebedor","valor"}, {"op":"setPixCidade","valor"}, {"op":"setModoVerificacao","valor":"auto|manual"}, {"op":"setGatilho","valor"}, {"op":"setHorario","valor":{"abre":14,"fecha":0}} (horas em número), {"op":"setAberto","valor":"aberto|fechado|automatico"}, {"op":"setTaxaRegiao","valor":{"regiao":"urbana|Da Bola","preco":número}}, {"op":"addCopo","nome","preco","gratis","desc"}, {"op":"updCopo","nome","preco?","gratis?","desc?","novoNome?"}, {"op":"delCopo","nome"}, {"op":"addItem","grupo":"acomp|caldas|ad5|ad6|ad7","nome","emoji?","preco?"}, {"op":"updItem","grupo","nome","preco"}, {"op":"delItem","grupo","nome"}, {"op":"addBebida","nome","preco","desc?"}, {"op":"updBebida","nome","preco?","novoNome?"}, {"op":"delBebida","nome"}. Operações genéricas para QUALQUER campo do config: {"op":"setCfg","caminho":"entregaTaxa.urbana","valor":6}, {"op":"addCfg","caminho":"letreiro","valor":"..."}, {"op":"delCfg","caminho":"copos.2"} — caminho com pontos, números são índice da lista, valor pode ser texto, número, booleano, lista ou objeto. Regras: números sempre como número (não texto); nunca altere campos marcados como "[texto longo — não altere]" ou "[lista com N itens — não altere]"; consulte o Config atual abaixo para achar os caminhos; se não houver nada a mudar, devolva {"ops":[],"fale":"..."}. Toda edição é salva no site automaticamente. Config atual: ${JSON.stringify(resumoCfg(CFG)).slice(0,20000)}`;
   const r = await fetch(ia.url, {
     method:'POST',
     headers: {'Content-Type':'application/json', 'Authorization':'Bearer ' + ia.chave},
@@ -6129,7 +6224,7 @@ async function enviarChat(){
   /* 1) tenta o intérprete local */
   const r = interpretar(txt);
   if (r && r.help){
-    chatPush('Posso editar tudo do site, veja os exemplos acima 👆 Comandos prontos:\n• preço / novo copo / remover item\n• whatsapp, nome da loja, cidade, cor principal\n• chave pix, recebedor, palavra-chave do robô\n• verificação automática/manual\n• "ir para o ar" (baixa o site atualizado)', 'bot');
+    chatPush('Posso editar tudo do site 👆 Comandos prontos:\n• preço de copos, adicionais e bebidas\n• taxa de entrega (urbana / Da Bola)\n• horário de funcionamento e abrir/fechar a loja\n• whatsapp, nome da loja, cidade, cor principal\n• chave pix, recebedor, palavra-chave do robô\n• verificação automática/manual\n• com IA online: QUALQUER campo do site\n• "ir para o ar" (baixa o site atualizado)', 'bot');
     return;
   }
   if (r && r.pub){
@@ -6140,7 +6235,7 @@ async function enviarChat(){
   }
   if (r && r.ops){
     const feitas = aplicarOps(r.ops);
-    if (feitas.length){ chatPush('Feito! ✅ <span class="feito">' + esc(r.msg) + '</span>\nAs mudanças já estão valendo no site. Quando quiser, toque em 🚀 <b>Publicar</b> para ir para o ar.', 'bot'); return; }
+    if (feitas.length){ chatPush('Feito! ✅ <span class="feito">' + esc(r.msg) + '</span><br>' + esc(ondeSalvou()) + '\nQuando quiser ir para o ar, toque em 🚀 <b>Publicar</b>.', 'bot'); return; }
   }
   if (r && r.msg){ chatPush(esc(r.msg), 'bot'); return; }
   /* 2) IA online, se configurada */
@@ -6150,7 +6245,7 @@ async function enviarChat(){
     if (resp && resp.ops && resp.ops.length){
       const feitas = aplicarOps(resp.ops);
       chatPush(feitas.length
-        ? 'Feito! ✅ <span class="feito">' + esc(resp.fale || 'Edições aplicadas.') + '</span>'
+        ? 'Feito! ✅ <span class="feito">' + esc(resp.fale || 'Edições aplicadas.') + '</span><br>' + esc(ondeSalvou())
         : 'Não consegui aplicar: ' + esc(resp.fale || 'opções inválidas'), 'bot');
     } else if (resp && resp.fale){
       chatPush(esc(resp.fale), 'bot');
